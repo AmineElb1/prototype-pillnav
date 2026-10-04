@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, type ReactNode } from "react"
 import Navigation20MobileAppIos from "./imports/Navigation20MobileAppIos/index"
 import BottomNav from "./BottomNav"
+import SectionPage from "./SectionPages"
 
 // ─── SF Symbols as inline SVG (cross-platform, exact Figma geometry) ──────────
 
@@ -701,6 +702,7 @@ function TabPillRow({
 
 export default function App() {
   const [activeTabIdx, setActiveTabIdx] = useState(0)
+  const [activeNavId, setActiveNavId] = useState("home")
   const [activePills, setActivePills] = useState<Record<string, string>>({})
   const [selectedSubmenu, setSelectedSubmenu] = useState<Record<string, Record<string, string>>>({})
   const [openMenuPillId, setOpenMenuPillId] = useState<string | null>(null)
@@ -862,6 +864,9 @@ export default function App() {
   return (
     <div style={{ background: "white", height: "100%", width: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
+      {/* Home view stays mounted (hidden) while another bottom-nav section is open, so its state survives */}
+      <div style={{ flex: 1, minHeight: 0, display: activeNavId === "home" ? "flex" : "none", flexDirection: "column" }}>
+
       {/* ── Header — translates up with scroll, comes back on scroll-up ── */}
       <div
         ref={headerRef}
@@ -953,7 +958,7 @@ export default function App() {
       {/* ── Swipeable Content Carousel ── */}
       <div
         ref={viewportRef}
-        style={{ flex: 1, overflow: "hidden", position: "relative" }}
+        style={{ flex: 1, overflow: "hidden", position: "relative", touchAction: "pan-y" }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -991,7 +996,7 @@ export default function App() {
             return (
               <div
                 key={tab.id}
-                style={{ width: `${100 / MAIN_TABS.length}%`, height: "100%", overflowY: "auto" }}
+                style={{ width: `${100 / MAIN_TABS.length}%`, height: "100%", overflowY: "auto", touchAction: "pan-y" }}
                 onScroll={tabIdx === activeTabIdx ? handleContentScroll : undefined}
               >
                 <div style={{ padding: "16px 16px 12px" }}>
@@ -1014,8 +1019,12 @@ export default function App() {
         </div>
       </div>
 
+      </div>
+
+      {activeNavId !== "home" && <SectionPage id={activeNavId} header={<Navigation20MobileAppIos />} />}
+
       {/* ── Bottom navigation ── */}
-      <BottomNav />
+      <BottomNav activeId={activeNavId} onSelect={setActiveNavId} />
     </div>
   )
 }
